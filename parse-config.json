@@ -6,11 +6,16 @@
   "publicServerURL": "http://parse.localhost/parse",
   "cloud": "/parse-server/cloud/main.js",
   "mountPath": "/parse",
+  "fileUpload": {
+    "enableForAnonymousUser": true,
+    "enableForAuthenticatedUser": true,
+    "enableForPublic": true
+  },
   "filesAdapter": {
     "module": "@parse/s3-files-adapter",
     "options": {
       "bucket": "parse-bucket",
-      "directAccess": true,
+      "directAccess": false,
       "baseUrl": "http://minio.localhost/parse-bucket",
       "s3overrides": {
         "endpoint": "http://minio:9000",
@@ -29,5 +34,6 @@
   },
   "allowClientClassCreation": false,
   "allowExpiredAuthDataToken": true,
-  "masterKeyIps": ["0.0.0.0/0"]
+  "masterKeyIps": ["0.0.0.0/0"],
+  "maxUploadSize": "100mb"
 }
