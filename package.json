@@ -1,0 +1,16 @@
+{
+  "name": "parse-server-example",
+  "version": "1.0.0",
+  "description": "An example Parse API server using the parse-server module",
+  "main": "index.js",
+  "scripts": {
+    "start": "parse-server"
+  },
+  "dependencies": {
+    "parse-server": "^7.0.0",
+    "@parse/s3-files-adapter": "^1.2.3"
+  },
+  "engines": {
+    "node": ">=18 <19"
+  }
+}

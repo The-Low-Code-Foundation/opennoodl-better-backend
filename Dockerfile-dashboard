@@ -1,0 +1,9 @@
+FROM node:18-alpine
+
+RUN npm install -g parse-dashboard@5.1.0
+
+COPY parse-dashboard-config.json /parse-dashboard-config.json
+
+EXPOSE 4040
+
+CMD ["parse-dashboard", "--config", "/parse-dashboard-config.json", "--allowInsecureHTTP", "true"]

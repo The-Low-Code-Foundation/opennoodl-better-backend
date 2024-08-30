@@ -1,0 +1,33 @@
+{
+  "appId": "myAppId",
+  "masterKey": "myMasterKey",
+  "databaseURI": "mongodb://mongo:27017/parse",
+  "serverURL": "http://0.0.0.0:1337/parse",
+  "publicServerURL": "http://parse.localhost/parse",
+  "cloud": "/parse-server/cloud/main.js",
+  "mountPath": "/parse",
+  "filesAdapter": {
+    "module": "@parse/s3-files-adapter",
+    "options": {
+      "bucket": "parse-bucket",
+      "directAccess": true,
+      "baseUrl": "http://minio.localhost/parse-bucket",
+      "s3overrides": {
+        "endpoint": "http://minio:9000",
+        "accessKey": "minio",
+        "secretKey": "minio123",
+        "s3ForcePathStyle": true,
+        "signatureVersion": "v4"
+      }
+    }
+  },
+  "cacheAdapter": {
+    "module": "parse-server/lib/Adapters/Cache/RedisCacheAdapter",
+    "options": {
+      "url": "redis://redis:6379"
+    }
+  },
+  "allowClientClassCreation": false,
+  "allowExpiredAuthDataToken": true,
+  "masterKeyIps": ["0.0.0.0/0"]
+}

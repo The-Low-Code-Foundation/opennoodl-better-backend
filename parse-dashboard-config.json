@@ -1,0 +1,14 @@
+{
+  "apps": [{
+    "serverURL": "http://parse.localhost/parse",
+    "appId": "myAppId",
+    "masterKey": "myMasterKey",
+    "appName": "MyApp"
+  }],
+  "users": [{
+    "user": "admin",
+    "pass": "password"
+  }],
+  "trustProxy": 1,
+  "allowInsecureHTTP": true
+}

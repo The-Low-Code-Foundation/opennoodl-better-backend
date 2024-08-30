@@ -1,0 +1,145 @@
+version: '3'
+
+services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+    networks:
+      - web
+      - internal
+
+  parse-server:
+    build: 
+      context: .
+      dockerfile: Dockerfile-parse
+    environment:
+      PARSE_SERVER_APPLICATION_ID: ${PARSE_APP_ID}
+      PARSE_SERVER_MASTER_KEY: ${PARSE_MASTER_KEY}
+      PARSE_SERVER_DATABASE_URI: ${PARSE_SERVER_DATABASE_URI}
+      PARSE_SERVER_URL: http://0.0.0.0:1337/parse
+      PARSE_PUBLIC_SERVER_URL: ${PARSE_PUBLIC_SERVER_URL}
+      PARSE_SERVER_CLOUD: /parse-server/cloud/main.js
+      PARSE_SERVER_MOUNT_PATH: "/parse"
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      REDIS_URL: redis://redis:6379
+      S3_BUCKET: ${MINIO_BUCKET_NAME}
+    ports:
+      - "1337:1337"
+    depends_on:
+      - redis
+      - minio
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.parse.rule=Host(`parse.${DOMAIN_NAME}`)"
+      - "traefik.http.services.parse.loadbalancer.server.port=1337"
+    networks:
+      - web
+      - internal
+
+  parse-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile-dashboard
+    environment:
+      - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=4040"
+    networks:
+      - web
+      - internal
+
+  n8n:
+    image: n8nio/n8n:latest
+    environment:
+      - N8N_HOST=n8n.${DOMAIN_NAME}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_USER_MANAGEMENT_DISABLED=true
+      - WEBHOOK_URL=http://n8n.${DOMAIN_NAME}/
+      - GENERIC_TIMEZONE=UTC
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - NODE_ENV=development
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_SECURE_COOKIE=false
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN_NAME}`)"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+    networks:
+      - web
+      - internal
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.minio-api.rule=Host(`minio.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.minio-api.service=minio-api"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
+      - "traefik.http.routers.minio-console.rule=Host(`minio-console.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+    networks:
+      - web
+      - internal
+
+  mongo:
+    image: mongo:latest
+    networks:
+      - internal
+
+  redis:
+    image: redis:alpine
+    networks:
+      - internal
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dozzle.rule=Host(`dozzle.${DOMAIN_NAME}`)"
+      - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+    networks:
+      - web
+      - internal
+
+volumes:
+  minio_data:
+  mongo_data:
+  redis_data:
+
+networks:
+  web:
+    external: true
+  internal:
+    name: ${COMPOSE_PROJECT_NAME:-parse}_internal
