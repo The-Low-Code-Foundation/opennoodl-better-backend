@@ -32,7 +32,8 @@ services:
       PARSE_SERVER_APPLICATION_ID: ${PARSE_APP_ID}
       PARSE_SERVER_MASTER_KEY: ${PARSE_MASTER_KEY}
       PARSE_SERVER_DATABASE_URI: ${PARSE_SERVER_DATABASE_URI}
-      PARSE_SERVER_URL: http://0.0.0.0:1337/parse
+      PARSE_SERVER_URL: http://parse-server:1337/parse
+      PARSE_SERVER_HOST: 0.0.0.0
       PARSE_PUBLIC_SERVER_URL: ${PARSE_PUBLIC_SERVER_URL}
       PARSE_SERVER_CLOUD: /parse-server/cloud/main.js
       PARSE_SERVER_MOUNT_PATH: "/parse"
@@ -60,6 +61,12 @@ services:
       context: .
       dockerfile: Dockerfile-dashboard
     environment:
+      - PARSE_DASHBOARD_SERVER_URL=http://parse-server:1337/parse
+      - PARSE_DASHBOARD_MASTER_KEY=${PARSE_MASTER_KEY}
+      - PARSE_DASHBOARD_APP_ID=${PARSE_APP_ID}
+      - PARSE_DASHBOARD_APP_NAME=MyApp
+      - PARSE_DASHBOARD_USER_ID=${PARSE_DASHBOARD_USER_ID}
+      - PARSE_DASHBOARD_USER_PASSWORD=${PARSE_DASHBOARD_USER_PASSWORD}
       - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=true
     labels:
       - "traefik.enable=true"
@@ -92,10 +99,11 @@ services:
 
   minio:
     image: minio/minio:latest
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":9001" --address ":9000"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER_REDIRECT_URL: http://minio-console.${DOMAIN_NAME}
     volumes:
       - minio_data:/data
     labels:
