@@ -69,3 +69,22 @@ The following services should be accessible when finished (localhost examples):
 * http://minio.localhost (MinIO API endpoint)
 * http://traefik.localhost (Traefik dashboard)
 * http://dozzle.localhost (Dozzle dashboard)
+
+
+## n8n templates
+
+To help make the transition from Noodl Cloud Service cloud functions to n8n cloud functions, you'll find some ready-made n8n templates in the [n8n templates](/n8n-templates/) folder. 
+
+### Available templates
+
+So far we've added the workflow to request a user password reset, and the workflow that sets the new password with a valid token. 
+
+### Installation
+
+Create a new n8n workflow, click on the three dot menu at the top right and select 'Import from file', then select the downloaded n8n template JSON file.
+
+### Useful information
+
+You'll need to update each template with your own Parse Server properties in the HTTP nodes and your own email provider details (we've used Brevo as an example, they have a generous free plan). 
+
+Note that the Parse Server URL used in the HTTP node is an internal Docker address rather than the public URL (this is necessary when running the services inside the same container). If you're running your own n8n instance, in AWS App Runner for example, you'd want to add the public URL instead of the internal Docker URL.
