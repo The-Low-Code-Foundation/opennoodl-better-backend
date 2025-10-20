@@ -165,7 +165,7 @@ EOL
 cat > parse-dashboard-config.json << EOL
 {
   "apps": [{
-    "serverURL": "$protocol://parse.$domain_name/parse",
+    "serverURL": "http://parse.localhost/parse",
     "appId": "$parse_app_id",
     "masterKey": "$parse_master_key",
     "appName": "MyApp"

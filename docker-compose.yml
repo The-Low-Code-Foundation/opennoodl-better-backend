@@ -68,6 +68,8 @@ services:
       - PARSE_DASHBOARD_USER_ID=${PARSE_DASHBOARD_USER_ID}
       - PARSE_DASHBOARD_USER_PASSWORD=${PARSE_DASHBOARD_USER_PASSWORD}
       - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=true
+    depends_on:
+      - parse-server  # Changed from mongo/redis to parse-server
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dashboard.rule=Host(`dashboard.${DOMAIN_NAME}`)"
@@ -123,11 +125,21 @@ services:
     image: mongo:latest
     networks:
       - internal
+    healthcheck: 
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
     networks:
       - internal
+    healthcheck: 
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   dozzle:
     image: amir20/dozzle:latest
